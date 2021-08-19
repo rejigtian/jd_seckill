@@ -20,6 +20,7 @@ public class Start {
     final static String Referer = "Referer";
     final static String RefererArg = "https://passport.jd.com/new/login.aspx";
     //茅台 100012043978 双手柄 100021367452 单手柄 100019378198
+    //显卡 100011553443
     static String pid = new Scanner(System.in).nextLine();
     static String eid = "X";
     static String fp = "X";

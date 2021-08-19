@@ -25,7 +25,7 @@ public class Login {
         headers.put(Start.Referer, Start.RefererArg);
         Long now = System.currentTimeMillis();
         HttpUrlConnectionUtil.getQCode(headers, "https://qr.m.jd.com/show?appid=133&size=147&t=" + now);
-        Runtime.getRuntime().exec("cmd /c QCode.png");
+        Runtime.getRuntime().exec("open -a /System/Applications/Preview.app QCode.png");
         URI url = new URI("https://qr.m.jd.com/show?appid=133&size=147&t=" + now);
         Map<String, List<String>> stringListMap = new HashMap<String, List<String>>();
         stringListMap = Start.manager.get(url, requestHeaders);
@@ -57,24 +57,31 @@ public class Login {
     }
 
     public static void close() throws IOException, InterruptedException {
-        WinDef.HWND hWnd;
-        final User32 user32 = User32.INSTANCE;
-        user32.EnumWindows(new WinUser.WNDENUMPROC() {
-            @Override
-            public boolean callback(WinDef.HWND hWnd, Pointer arg1) {
-                char[] windowText = new char[512];
-                user32.GetWindowText(hWnd, windowText, 512);
-                String wText = Native.toString(windowText);
-                if (wText.isEmpty()) {
+        int platform = BaseUtil.getCurrentSystem();
+        if (platform == BaseUtil.MAC_OS){
+            Runtime.getRuntime().exec("pkill -9 Preview");
+        } else if (platform == BaseUtil.WINDOWS_OS) {
+            WinDef.HWND hWnd;
+            final User32 user32 = User32.INSTANCE;
+            user32.EnumWindows(new WinUser.WNDENUMPROC() {
+                @Override
+                public boolean callback(WinDef.HWND hWnd, Pointer arg1) {
+                    char[] windowText = new char[512];
+                    user32.GetWindowText(hWnd, windowText, 512);
+                    String wText = Native.toString(windowText);
+                    if (wText.isEmpty()) {
+                        return true;
+                    }
+                    if (wText.contains("照片")) {
+                        hWnd = User32.INSTANCE.FindWindow(null, wText);
+                        WinDef.LRESULT lresult = User32.INSTANCE.SendMessage(hWnd, 0X10, null, null);
+                    }
                     return true;
                 }
-                if (wText.contains("照片")) {
-                    hWnd = User32.INSTANCE.FindWindow(null, wText);
-                    WinDef.LRESULT lresult = User32.INSTANCE.SendMessage(hWnd, 0X10, null, null);
-                }
-                return true;
-            }
-        }, null);
+            }, null);
+        } else {
+            System.out.println("暂不支持linux或unix");
+        }
     }
 
 }
