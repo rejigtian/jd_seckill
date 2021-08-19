@@ -1,6 +1,6 @@
 ## 环境
 
-- Windows 10
+- Windows 10 or MAC
 - Oracle JDK 8
 
 ## 使用
