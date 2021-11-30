@@ -20,7 +20,7 @@ public class Start {
     final static String Referer = "Referer";
     final static String RefererArg = "https://passport.jd.com/new/login.aspx";
     //茅台 100012043978 双手柄 100021367452 单手柄 100019378198
-    //显卡 100011553443
+    //显卡 100011553443 100024794564
     static String pid = new Scanner(System.in).nextLine();
     static String eid = "X";
     static String fp = "X";
@@ -31,7 +31,7 @@ public class Start {
         CookieHandler.setDefault(manager);
         Login.login();
         judgePruchase();
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 1000, TimeUnit.MILLISECONDS, new PriorityBlockingQueue<Runnable>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(5, 10, 1000, TimeUnit.MILLISECONDS, new PriorityBlockingQueue<>(), Executors.defaultThreadFactory(), new ThreadPoolExecutor.AbortPolicy());
         for (int i = 0; i < 5; i++) {
             threadPoolExecutor.execute(new RushToPurchase());
         }
@@ -49,7 +49,8 @@ public class Start {
             String startDate = buyDate.split("-202")[0] + ":00";
             System.out.println("抢购时间为：" + startDate);
             long startTime = HttpUrlConnectionUtil.dateToTime(startDate);
-            while (true) {
+            boolean needWait = true;
+            while (needWait) {
                 JSONObject jdTime = JSONObject.parseObject(HttpUrlConnectionUtil.get(headers, "https://api.m.jd.com/client.action?functionId=queryMaterialProducts&client=wh5"));
                 long serverTime = Long.parseLong(jdTime.get("currentTime2").toString());
                 if (startTime - serverTime > 5 * 60 * 1000) {
@@ -62,7 +63,7 @@ public class Start {
                     System.out.println("剩余时间小于1分钟，短等待");
                     Thread.sleep(50);
                 }else {
-                    break;
+                    needWait = false;
                 }
             }
         }

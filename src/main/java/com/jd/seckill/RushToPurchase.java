@@ -12,19 +12,13 @@ import java.util.Map;
 public class RushToPurchase implements Runnable {
 
     volatile static Integer times = 0;
-    static Map<String, List<String>> stringListMap = new HashMap<String, List<String>>();
+    static Map<String, List<String>> stringListMap = new HashMap<>();
 
     public void run() {
         JSONObject headers = new JSONObject();
         while (times < Start.ok) {
             headers.put(Start.headerAgent, Start.headerAgentArg);
             headers.put(Start.Referer, Start.RefererArg);
-            String gate = null;
-            try {
-                gate = HttpUrlConnectionUtil.get(headers, "https://cart.jd.com/gate.action?pcount=1&ptype=1&pid=" + Start.pid);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
             stringListMap.clear();
             try {
                 stringListMap = Start.manager.get(new URI("https://trade.jd.com/shopping/order/getOrderInfo.action"), stringListMap);
@@ -32,12 +26,7 @@ public class RushToPurchase implements Runnable {
                 e.printStackTrace();
             }
             List<String> cookie = stringListMap.get("Cookie");
-            headers.put("Cookie", cookie.get(0).toString());
-            try {
-                String orderInfo = HttpUrlConnectionUtil.get(headers, "https://trade.jd.com/shopping/order/getOrderInfo.action");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            headers.put("Cookie", cookie.get(0));
             JSONObject subData = new JSONObject();
             headers = new JSONObject();
             subData.put("overseaPurchaseCookies", "");
@@ -64,7 +53,7 @@ public class RushToPurchase implements Runnable {
                 e.printStackTrace();
             }
             cookie = stringListMap.get("Cookie");
-            headers.put("Cookie", cookie.get(0).toString());
+            headers.put("Cookie", cookie.get(0));
             String submitOrder = null;
             try {
                 if (times < Start.ok) {
@@ -76,7 +65,11 @@ public class RushToPurchase implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            if (submitOrder.contains("刷新太频繁了") || submitOrder.contains("抱歉，您访问的内容不存在")) {
+            if (submitOrder == null) {
+                System.out.println("数据异常");
+                continue;
+            }
+            if (submitOrder.contains("频繁") || submitOrder.contains("抱歉，您访问的内容不存在")) {
                 System.out.println("刷新太频繁了,您访问的内容不存在");
                 continue;
             }
@@ -90,7 +83,7 @@ public class RushToPurchase implements Runnable {
                 message = jsonObject.get("message").toString();
             }
 
-            if (success == "true") {
+            if ("true".equals(success)) {
                 System.out.println("抢购成功，请尽快完成付款");
                 times++;
             } else {
